@@ -125,6 +125,10 @@
           <button id="btn-start-camera" class="btn-primary" onclick="userStartScanner()">
             <span class="btn-icon">📷</span> ACTIVAR CAMARA
           </button>
+          <button id="btn-photo-qr" class="btn-secondary" onclick="openQRPhotoPicker()">
+            TOMAR FOTO DEL QR
+          </button>
+          <input id="qr-photo-input" class="hidden" type="file" accept="image/*" capture="environment" onchange="scanQRPhoto(this)" />
         </div>
         <div id="qr-reader"></div>
         <div id="scan-status" class="scan-status">Toca el boton para activar la camara</div>

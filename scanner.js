@@ -30,6 +30,57 @@ function userStartScanner() {
   startScanner();
 }
 
+function openQRPhotoPicker() {
+  const input = document.getElementById('qr-photo-input');
+  if (input) input.click();
+}
+
+async function scanQRPhoto(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('scan-status');
+  statusEl.textContent = 'Leyendo imagen del QR...';
+  statusEl.className = 'scan-status';
+
+  if (typeof Html5Qrcode === 'undefined') {
+    statusEl.textContent = 'No se cargo el lector QR. Abre la app con internet una vez y vuelve a intentar.';
+    statusEl.className = 'scan-status error';
+    input.value = '';
+    return;
+  }
+
+  let fileScanner = null;
+  try {
+    await stopScanner();
+
+    const reader = document.getElementById('qr-reader');
+    reader.innerHTML = '';
+    fileScanner = new Html5Qrcode('qr-reader');
+    const decodedText = await fileScanner.scanFile(file, true);
+    const data = validateQRPayload(decodedText);
+
+    if (!data) {
+      statusEl.textContent = 'La imagen no contiene un QR valido o el QR ya expiro.';
+      statusEl.className = 'scan-status error';
+      showToast('QR expirado o invalido', 'error', 5000);
+      return;
+    }
+
+    showScannedQRData(data);
+  } catch (err) {
+    console.error('[PyMIB Scanner] No se pudo leer la foto del QR:', err);
+    statusEl.textContent = 'No pude leer el QR en la foto. Acercate mas, enfoca bien e intenta de nuevo.';
+    statusEl.className = 'scan-status error';
+    showToast('No pude leer el QR en la foto', 'error', 5000);
+  } finally {
+    input.value = '';
+    if (fileScanner) {
+      try { await fileScanner.clear(); } catch {}
+    }
+  }
+}
+
 async function startScanner() {
   if (scannerRunning) return;
 
@@ -106,7 +157,7 @@ async function startScanner() {
       statusEl.className = 'scan-status';
     } catch (err2) {
       console.error('[PyMIB Scanner] No se pudo iniciar la camara:', err2);
-      statusEl.textContent = 'No se pudo acceder a la camara. Revisa permisos de Chrome > Configuracion del sitio > Camara.';
+      statusEl.textContent = 'No se pudo acceder a la camara. Revisa permisos o usa TOMAR FOTO DEL QR.';
       statusEl.className = 'scan-status error';
       showToast('Error al acceder a la camara. Verifica permisos.', 'error', 6000);
       setCameraButtonVisible(true);

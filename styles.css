@@ -625,10 +625,14 @@ html, body {
 }
 .camera-start {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 10px;
   margin: 4px 0 16px;
 }
-.camera-start .btn-primary {
+.camera-start .btn-primary,
+.camera-start .btn-secondary {
   max-width: 300px;
 }
 #qr-reader video { border-radius: var(--radius); }
