@@ -623,6 +623,14 @@ html, body {
   border: 1px solid var(--border) !important;
   background: var(--dark3) !important;
 }
+.camera-start {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 16px;
+}
+.camera-start .btn-primary {
+  max-width: 300px;
+}
 #qr-reader video { border-radius: var(--radius); }
 #qr-reader__scan_region { background: transparent !important; }
 #qr-reader__dashboard { background: var(--dark3) !important; padding: 8px !important; }

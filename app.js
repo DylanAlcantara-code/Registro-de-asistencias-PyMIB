@@ -57,7 +57,7 @@ function openInitialRoute() {
       showScannedQRData(data);
       return;
     }
-    showToast('QR expirado o inválido. Escanea uno nuevo.', 'error', 5000);
+    showToast('QR expirado o invalido. Escanea uno nuevo.', 'error', 5000);
   }
 
   if (workerMode || pageName === 'worker.html' || !requestedSupervisor) {
@@ -81,7 +81,7 @@ function selectRole(role, options = {}) {
     document.getElementById('worker-view').classList.remove('hidden');
     currentView = 'worker';
     setTimeout(() => showInstallBanner(), 800);
-    // Camera is started by the user tapping "ACTIVAR CÁMARA" (required for iOS/Android gesture policy)
+    setTimeout(() => prepareScannerPrompt(), 150);
   }
 
   document.getElementById('role-selector').classList.add('hidden');
@@ -183,8 +183,8 @@ async function registerAttendance() {
     latitud  = pos.coords.latitude.toFixed(7);
     longitud = pos.coords.longitude.toFixed(7);
   } catch (gpsErr) {
-    console.warn('[PyMIB GPS] Error de ubicación:', gpsErr);
-    showToast('⚠ ' + gpsErrorMessage(gpsErr), 'warning', 5000);
+    console.warn('[PyMIB GPS] GPS no disponible:', gpsErr);
+    showToast('⚠ GPS no disponible — registrando sin coordenadas', 'warning');
   }
 
   // Determine Entrada or Salida
@@ -289,31 +289,15 @@ function showConfirmation(record) {
 function getGPS() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error('NO_SUPPORT'));
+      reject(new Error('Geolocation no soportada'));
       return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, err => {
-      // Attach a readable code so callers can give specific feedback
-      err._pymibCode = err.code === 1 ? 'DENIED'
-                     : err.code === 2 ? 'UNAVAILABLE'
-                     : err.code === 3 ? 'TIMEOUT'
-                     : 'UNKNOWN';
-      reject(err);
-    }, {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: true,
-      timeout:            15000,
+      timeout:            10000,
       maximumAge:         60000
     });
   });
-}
-
-function gpsErrorMessage(err) {
-  const code = err && err._pymibCode;
-  if (code === 'DENIED')      return 'Permiso de ubicación denegado — actívalo en Ajustes del navegador';
-  if (code === 'UNAVAILABLE') return 'Señal GPS débil — registrando sin coordenadas';
-  if (code === 'TIMEOUT')     return 'GPS tardó demasiado — registrando sin coordenadas';
-  if (err && err.message === 'NO_SUPPORT') return 'Este dispositivo no soporta GPS';
-  return 'GPS no disponible — registrando sin coordenadas';
 }
 
 // ── TOAST ─────────────────────────────

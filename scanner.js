@@ -1,59 +1,100 @@
-// ═══════════════════════════════════════
-//  scanner.js — QR code scanner
-//  PyMIB Attendance System
-// ═══════════════════════════════════════
+// QR scanner controller
 
-let html5QrScanner  = null;
-let scannedQRData   = null;
-let scannerRunning  = false;
+let html5QrScanner = null;
+let scannedQRData = null;
+let scannerRunning = false;
 
-/**
- * Called by the "ACTIVAR CÁMARA" button — requires a real user gesture on iOS/Android
- */
+function setCameraButtonVisible(visible) {
+  const btn = document.getElementById('btn-start-camera');
+  if (btn) btn.classList.toggle('hidden', !visible);
+}
+
+function prepareScannerPrompt() {
+  if (scannedQRData || scannerRunning) return;
+
+  const statusEl = document.getElementById('scan-status');
+  if (statusEl) {
+    statusEl.textContent = 'Toca el boton para activar la camara';
+    statusEl.className = 'scan-status';
+  }
+
+  const reader = document.getElementById('qr-reader');
+  if (reader && !reader.dataset.ready) {
+    reader.innerHTML = '';
+  }
+
+  setCameraButtonVisible(true);
+}
+
 function userStartScanner() {
-  // Hide the button immediately so it doesn't flash back
-  const wrap = document.getElementById('camera-start-wrap');
-  if (wrap) wrap.style.display = 'none';
-
   startScanner();
 }
 
-/**
- * Initialize and start the QR scanner
- */
 async function startScanner() {
   if (scannerRunning) return;
 
   const statusEl = document.getElementById('scan-status');
-  statusEl.textContent = 'Iniciando cámara...';
-  statusEl.className   = 'scan-status';
+  statusEl.textContent = 'Iniciando camara...';
+  statusEl.className = 'scan-status';
+  setCameraButtonVisible(false);
+
+  if (typeof Html5Qrcode === 'undefined') {
+    statusEl.textContent = 'No se cargo el lector QR. Abre la app con internet una vez y vuelve a intentar.';
+    statusEl.className = 'scan-status error';
+    setCameraButtonVisible(true);
+    return;
+  }
+
+  if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    statusEl.textContent = 'La camara requiere HTTPS. Abre la app desde GitHub Pages con https://';
+    statusEl.className = 'scan-status error';
+    setCameraButtonVisible(true);
+    return;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    statusEl.textContent = 'Este navegador no permite acceso a camara.';
+    statusEl.className = 'scan-status error';
+    setCameraButtonVisible(true);
+    return;
+  }
 
   try {
+    const reader = document.getElementById('qr-reader');
+    reader.innerHTML = '';
+    reader.dataset.ready = '1';
+
     html5QrScanner = new Html5Qrcode('qr-reader');
 
     const config = {
-      fps:          10,
-      qrbox:        { width: 240, height: 240 },
-      aspectRatio:  1.0,
-      disableFlip:  false
+      fps: 10,
+      qrbox: { width: 240, height: 240 },
+      aspectRatio: 1.0,
+      disableFlip: false
     };
 
-    await html5QrScanner.start(
-      { facingMode: 'environment' },
-      config,
-      onScanSuccess,
-      onScanFailure
-    );
+    let cameraConfig = { facingMode: 'environment' };
+    try {
+      const cameras = await Html5Qrcode.getCameras();
+      if (cameras && cameras.length) {
+        const rear = cameras.find(c => /back|rear|environment|trasera|posterior/i.test(c.label));
+        cameraConfig = (rear || cameras[cameras.length - 1]).id;
+      }
+    } catch (cameraListErr) {
+      console.warn('[PyMIB Scanner] No se pudieron listar camaras:', cameraListErr);
+    }
+
+    await html5QrScanner.start(cameraConfig, config, onScanSuccess, onScanFailure);
 
     scannerRunning = true;
-    const wrap = document.getElementById('camera-start-wrap');
-    if (wrap) wrap.style.display = 'none';
-    statusEl.textContent = 'Apunta la cámara al código QR del supervisor';
-    console.log('[PyMIB Scanner] Cámara iniciada ✓');
-
+    statusEl.textContent = 'Apunta la camara al codigo QR del supervisor';
+    statusEl.className = 'scan-status';
+    console.log('[PyMIB Scanner] Camara iniciada');
   } catch (err) {
-    console.warn('[PyMIB Scanner] Error con cámara trasera, intentando frontal...', err);
+    console.warn('[PyMIB Scanner] Error con camara principal, intentando frontal...', err);
+
     try {
+      if (!html5QrScanner) html5QrScanner = new Html5Qrcode('qr-reader');
       await html5QrScanner.start(
         { facingMode: 'user' },
         { fps: 10, qrbox: { width: 240, height: 240 } },
@@ -61,71 +102,65 @@ async function startScanner() {
         onScanFailure
       );
       scannerRunning = true;
-      const wrap2 = document.getElementById('camera-start-wrap');
-      if (wrap2) wrap2.style.display = 'none';
+      statusEl.textContent = 'Apunta la camara al codigo QR del supervisor';
+      statusEl.className = 'scan-status';
     } catch (err2) {
-      console.error('[PyMIB Scanner] No se pudo iniciar la cámara:', err2);
-      statusEl.textContent = '⚠ No se pudo acceder a la cámara — verifica permisos en Ajustes';
-      statusEl.className   = 'scan-status error';
-      showToast('Sin acceso a la cámara. Ve a Ajustes y permite el acceso.', 'error', 6000);
+      console.error('[PyMIB Scanner] No se pudo iniciar la camara:', err2);
+      statusEl.textContent = 'No se pudo acceder a la camara. Revisa permisos de Chrome > Configuracion del sitio > Camara.';
+      statusEl.className = 'scan-status error';
+      showToast('Error al acceder a la camara. Verifica permisos.', 'error', 6000);
+      setCameraButtonVisible(true);
     }
   }
 }
 
-/**
- * Stop the QR scanner
- */
 async function stopScanner() {
   if (html5QrScanner && scannerRunning) {
     try {
       await html5QrScanner.stop();
       html5QrScanner.clear();
     } catch (e) {
-      // ignore
+      // Ignore scanner cleanup errors.
     }
-    scannerRunning = false;
-    html5QrScanner = null;
-    console.log('[PyMIB Scanner] Cámara detenida');
   }
+
+  scannerRunning = false;
+  html5QrScanner = null;
+
+  const reader = document.getElementById('qr-reader');
+  if (reader) delete reader.dataset.ready;
 }
 
-/**
- * Called on successful scan
- */
 function onScanSuccess(decodedText) {
   const data = validateQRPayload(decodedText);
 
   if (!data) {
     const statusEl = document.getElementById('scan-status');
-    statusEl.textContent = '⚠ QR inválido o expirado — pide uno nuevo al supervisor';
-    statusEl.className   = 'scan-status error';
-    showToast('QR expirado o inválido', 'error');
-    // keep scanning
+    statusEl.textContent = 'QR invalido o expirado. Pide uno nuevo al supervisor.';
+    statusEl.className = 'scan-status error';
+    showToast('QR expirado o invalido', 'error');
     return;
   }
 
-  // Valid QR — stop scanner and show name step
   stopScanner();
   showScannedQRData(data);
 }
 
 function showScannedQRData(data) {
   scannedQRData = data;
+  setCameraButtonVisible(false);
 
   const statusEl = document.getElementById('scan-status');
-  statusEl.textContent = '✓ QR escaneado correctamente';
-  statusEl.className   = 'scan-status success';
+  statusEl.textContent = 'QR escaneado correctamente';
+  statusEl.className = 'scan-status success';
 
-  // Show brief confirmation
   const infoEl = document.getElementById('scanned-info');
   infoEl.classList.remove('hidden');
   infoEl.innerHTML =
-    `✓ SUPERVISOR: ${escHtml(data.supervisor)}<br>` +
-    `✓ PROYECTO: ${escHtml(data.proyecto)}`;
+    `SUPERVISOR: ${escHtml(data.supervisor)}<br>` +
+    `PROYECTO: ${escHtml(data.proyecto)}`;
 
-  // Transition to name step after short delay
   setTimeout(() => {
-    // Populate info display
     document.getElementById('qr-info-display').innerHTML =
       `<span class="label">SUPERVISOR</span><br>` +
       `<span class="value">${escHtml(data.supervisor)}</span><br>` +
@@ -135,7 +170,7 @@ function showScannedQRData(data) {
     document.getElementById('step-scan').classList.add('hidden');
     document.getElementById('step-name').classList.remove('hidden');
     document.getElementById('worker-name').focus();
-  }, 900);
+  }, 500);
 }
 
 function decodeQRQueryPayload(payload) {
@@ -149,16 +184,10 @@ function decodeQRQueryPayload(payload) {
   }
 }
 
-/**
- * Called on each failed scan attempt (normal — just means no QR yet)
- */
 function onScanFailure(error) {
-  // Silence expected "no QR found" messages
+  // Normal while the camera is looking for a QR.
 }
 
-/**
- * Reset scanner back to step 1
- */
 function resetScan() {
   scannedQRData = null;
 
@@ -166,39 +195,22 @@ function resetScan() {
   document.getElementById('step-scan').classList.remove('hidden');
   document.getElementById('step-confirm').classList.add('hidden');
 
-  const statusEl = document.getElementById('scan-status');
-  statusEl.textContent = 'Toca el botón para activar la cámara';
-  statusEl.className   = 'scan-status';
-
   const infoEl = document.getElementById('scanned-info');
   infoEl.classList.add('hidden');
   infoEl.innerHTML = '';
 
   document.getElementById('worker-name').value = '';
-
-  // Show button again so user can re-trigger (required gesture on iOS)
-  const wrap = document.getElementById('camera-start-wrap');
-  if (wrap) wrap.style.display = 'flex';
-
-  startScanner();
+  prepareScannerPrompt();
 }
 
-/**
- * Reset the worker view completely
- */
 function resetWorker() {
   scannedQRData = null;
 
   document.getElementById('step-confirm').classList.add('hidden');
   document.getElementById('step-name').classList.add('hidden');
   document.getElementById('step-scan').classList.remove('hidden');
-
-  document.getElementById('scan-status').textContent = 'Toca el botón para activar la cámara';
-  document.getElementById('scan-status').className   = 'scan-status';
   document.getElementById('scanned-info').classList.add('hidden');
   document.getElementById('worker-name').value = '';
 
-  // Show button again so user can re-trigger (required gesture on iOS)
-  const wrap = document.getElementById('camera-start-wrap');
-  if (wrap) wrap.style.display = 'flex';
+  prepareScannerPrompt();
 }

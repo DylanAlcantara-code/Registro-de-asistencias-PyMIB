@@ -75,8 +75,9 @@ async function syncPendingRecords() {
   let synced = 0;
   for (const record of pending) {
     try {
-      const res = await fetch(APPS_SCRIPT_URL, {
+      await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           id_local:   record.id,
@@ -91,14 +92,8 @@ async function syncPendingRecords() {
         })
       });
 
-      const result = await res.json().catch(() => ({ ok: res.ok }));
-
-      if (res.ok && result.ok !== false) {
-        await markAsSynced(record.id);
-        synced++;
-      } else {
-        console.warn(`[PyMIB Sync] Apps Script rechazo id=${record.id}:`, result);
-      }
+      await markAsSynced(record.id);
+      synced++;
     } catch (err) {
       console.warn(`[PyMIB Sync] Error al sincronizar id=${record.id}:`, err);
     }

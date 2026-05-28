@@ -57,7 +57,7 @@ function generateQR() {
   wrap.innerHTML = ''; // clear previous
 
   if (typeof QRCode === 'undefined') {
-    wrap.innerHTML = '<div class="qr-error">No se cargó el generador QR. Abre la app con internet una vez para actualizarla.</div>';
+    wrap.innerHTML = '<div class="qr-error">No se cargo el generador QR. Abre la app con internet una vez para actualizarla.</div>';
     showToast('No se pudo cargar el generador QR', 'error', 6000);
     return;
   }
@@ -85,6 +85,7 @@ function generateQR() {
     if (cvs) {
       cvs.style.display = 'block';
       cvs.style.borderRadius = '6px';
+      cvs.removeAttribute('style');
     }
     if (img) {
       img.style.display = 'none';
