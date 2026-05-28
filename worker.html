@@ -121,8 +121,13 @@
       <div id="step-scan" class="step-card">
         <div class="step-number">01</div>
         <div class="card-label">ESCANEAR QR</div>
+        <div id="camera-start-wrap" style="display:flex;justify-content:center;margin:12px 0;">
+          <button id="btn-start-camera" class="btn-primary" onclick="userStartScanner()" style="width:100%;max-width:300px;">
+            <span class="btn-icon">📷</span> ACTIVAR CÁMARA
+          </button>
+        </div>
         <div id="qr-reader"></div>
-        <div id="scan-status" class="scan-status">Apunta la cámara al código QR del supervisor</div>
+        <div id="scan-status" class="scan-status">Toca el botón para activar la cámara</div>
         <div id="scanned-info" class="scanned-info hidden"></div>
       </div>
 

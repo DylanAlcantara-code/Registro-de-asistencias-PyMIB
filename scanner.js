@@ -8,6 +8,17 @@ let scannedQRData   = null;
 let scannerRunning  = false;
 
 /**
+ * Called by the "ACTIVAR CÁMARA" button — requires a real user gesture on iOS/Android
+ */
+function userStartScanner() {
+  // Hide the button immediately so it doesn't flash back
+  const wrap = document.getElementById('camera-start-wrap');
+  if (wrap) wrap.style.display = 'none';
+
+  startScanner();
+}
+
+/**
  * Initialize and start the QR scanner
  */
 async function startScanner() {
@@ -35,6 +46,8 @@ async function startScanner() {
     );
 
     scannerRunning = true;
+    const wrap = document.getElementById('camera-start-wrap');
+    if (wrap) wrap.style.display = 'none';
     statusEl.textContent = 'Apunta la cámara al código QR del supervisor';
     console.log('[PyMIB Scanner] Cámara iniciada ✓');
 
@@ -48,11 +61,13 @@ async function startScanner() {
         onScanFailure
       );
       scannerRunning = true;
+      const wrap2 = document.getElementById('camera-start-wrap');
+      if (wrap2) wrap2.style.display = 'none';
     } catch (err2) {
       console.error('[PyMIB Scanner] No se pudo iniciar la cámara:', err2);
-      statusEl.textContent = '⚠ No se pudo acceder a la cámara';
+      statusEl.textContent = '⚠ No se pudo acceder a la cámara — verifica permisos en Ajustes';
       statusEl.className   = 'scan-status error';
-      showToast('Error al acceder a la cámara. Verifica permisos.', 'error');
+      showToast('Sin acceso a la cámara. Ve a Ajustes y permite el acceso.', 'error', 6000);
     }
   }
 }
@@ -152,7 +167,7 @@ function resetScan() {
   document.getElementById('step-confirm').classList.add('hidden');
 
   const statusEl = document.getElementById('scan-status');
-  statusEl.textContent = 'Apunta la cámara al código QR del supervisor';
+  statusEl.textContent = 'Toca el botón para activar la cámara';
   statusEl.className   = 'scan-status';
 
   const infoEl = document.getElementById('scanned-info');
@@ -160,6 +175,10 @@ function resetScan() {
   infoEl.innerHTML = '';
 
   document.getElementById('worker-name').value = '';
+
+  // Show button again so user can re-trigger (required gesture on iOS)
+  const wrap = document.getElementById('camera-start-wrap');
+  if (wrap) wrap.style.display = 'flex';
 
   startScanner();
 }
@@ -174,10 +193,12 @@ function resetWorker() {
   document.getElementById('step-name').classList.add('hidden');
   document.getElementById('step-scan').classList.remove('hidden');
 
-  document.getElementById('scan-status').textContent = 'Apunta la cámara al código QR del supervisor';
+  document.getElementById('scan-status').textContent = 'Toca el botón para activar la cámara';
   document.getElementById('scan-status').className   = 'scan-status';
   document.getElementById('scanned-info').classList.add('hidden');
   document.getElementById('worker-name').value = '';
 
-  startScanner();
+  // Show button again so user can re-trigger (required gesture on iOS)
+  const wrap = document.getElementById('camera-start-wrap');
+  if (wrap) wrap.style.display = 'flex';
 }
