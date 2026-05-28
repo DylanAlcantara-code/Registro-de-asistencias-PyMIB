@@ -57,19 +57,19 @@
       </div>
       <div class="role-cards">
         <button class="role-card" onclick="selectRole('supervisor')">
-          <div class="role-icon">ðŸ‘·</div>
+          <div class="role-icon">👷</div>
           <div class="role-name">SUPERVISOR</div>
           <div class="role-desc">Generar QR de asistencia</div>
           <div class="role-arrow">â†’</div>
         </button>
         <button class="role-card" onclick="selectRole('worker')">
-          <div class="role-icon">ðŸ”§</div>
+          <div class="role-icon">🔧</div>
           <div class="role-name">TRABAJADOR</div>
           <div class="role-desc">Registrar asistencia</div>
           <div class="role-arrow">â†’</div>
         </button>
       </div>
-      <button class="btn-records" onclick="showRecords()">ðŸ“‹ Ver Registros</button>
+      <button class="btn-records" onclick="showRecords()">📋 Ver Registros</button>
     </section>
 
     <!-- SUPERVISOR VIEW -->
@@ -79,17 +79,17 @@
         <h2>SUPERVISOR</h2>
       </div>
       <div class="card">
-        <div class="card-label">CONFIGURAR SESIÃ“N</div>
+        <div class="card-label">CONFIGURAR SESIÓN</div>
         <div class="form-group">
           <label class="field-label">NOMBRE DEL SUPERVISOR</label>
           <input type="text" id="sup-name" class="field-input" placeholder="Ej: Juan Bahena" autocomplete="off" />
         </div>
         <div class="form-group">
           <label class="field-label">PROYECTO / OBRA</label>
-          <input type="text" id="sup-project" class="field-input" placeholder="Ej: Planta PEMEX - RefinerÃ­a" autocomplete="off" />
+          <input type="text" id="sup-project" class="field-input" placeholder="Ej: Planta PEMEX - Refinería" autocomplete="off" />
         </div>
         <button class="btn-primary" onclick="generateQR()">
-          <span class="btn-icon">âš¡</span> GENERAR QR
+          <span class="btn-icon">⚡</span> GENERAR QR
         </button>
       </div>
 
@@ -107,7 +107,7 @@
             <div id="timer-bar" class="timer-bar"></div>
           </div>
         </div>
-        <button class="btn-secondary" onclick="generateQR()">ðŸ”„ REGENERAR QR</button>
+        <button class="btn-secondary" onclick="generateQR()">🔄 REGENERAR QR</button>
       </div>
     </section>
 
@@ -122,7 +122,7 @@
         <div class="step-number">01</div>
         <div class="card-label">ESCANEAR QR</div>
         <div id="qr-reader"></div>
-        <div id="scan-status" class="scan-status">Apunta la cÃ¡mara al cÃ³digo QR del supervisor</div>
+        <div id="scan-status" class="scan-status">Apunta la cámara al código QR del supervisor</div>
         <div id="scanned-info" class="scanned-info hidden"></div>
       </div>
 
@@ -132,10 +132,10 @@
         <div id="qr-info-display" class="qr-info-display"></div>
         <div class="form-group">
           <label class="field-label">NOMBRE COMPLETO</label>
-          <input type="text" id="worker-name" class="field-input" placeholder="Ej: Carlos MartÃ­nez" autocomplete="off" />
+          <input type="text" id="worker-name" class="field-input" placeholder="Ej: Carlos Martínez" autocomplete="off" />
         </div>
         <button class="btn-primary" onclick="registerAttendance()">
-          <span class="btn-icon">ðŸ“</span> REGISTRAR ASISTENCIA
+          <span class="btn-icon">📝</span> REGISTRAR ASISTENCIA
         </button>
         <button class="btn-ghost" onclick="resetScan()">â† Escanear de nuevo</button>
       </div>
@@ -156,10 +156,10 @@
       </div>
       <div class="records-toolbar">
         <span id="records-count" class="records-count">0 registros</span>
-        <button class="btn-sync-now" onclick="syncNow()">âš¡ SINCRONIZAR</button>
+        <button class="btn-sync-now" onclick="syncNow()">⚡ SINCRONIZAR</button>
       </div>
       <div id="records-list" class="records-list">
-        <div class="empty-state">No hay registros aÃºn</div>
+        <div class="empty-state">No hay registros aún</div>
       </div>
     </section>
 

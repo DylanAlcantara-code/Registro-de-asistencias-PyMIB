@@ -57,7 +57,7 @@ function openInitialRoute() {
       showScannedQRData(data);
       return;
     }
-    showToast('QR expirado o invalido. Escanea uno nuevo.', 'error', 5000);
+    showToast('QR expirado o inválido. Escanea uno nuevo.', 'error', 5000);
   }
 
   if (workerMode || pageName === 'worker.html' || !requestedSupervisor) {
