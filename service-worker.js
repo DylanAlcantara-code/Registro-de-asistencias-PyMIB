@@ -3,7 +3,7 @@
 //  PyMIB Attendance System
 // ═══════════════════════════════════════
 
-const CACHE_NAME = 'pymib-attendance-v9';
+const CACHE_NAME = 'pymib-attendance-v10';
 
 // Files to cache for full offline support
 const STATIC_ASSETS = [
@@ -14,6 +14,7 @@ const STATIC_ASSETS = [
   './styles.css',
   './app.js',
   './qr.js',
+  './qr-bundle.js',
   './scanner.js',
   './db.js',
   './sync.js',
